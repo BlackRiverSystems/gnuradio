@@ -54,6 +54,7 @@ fir_filter<IN_T, OUT_T, TAP_T>::~fir_filter()
     }
 }
 
+#include <iostream>
 template <class IN_T, class OUT_T, class TAP_T>
 void fir_filter<IN_T, OUT_T, TAP_T>::set_taps(const std::vector<TAP_T>& taps)
 {
