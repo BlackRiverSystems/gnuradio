@@ -58,7 +58,9 @@ template <class IN_T, class OUT_T, class TAP_T>
 void fir_filter<IN_T, OUT_T, TAP_T>::set_taps(const std::vector<TAP_T>& taps)
 {
     // Free the taps if already allocated
+    std::cout << __FUNCTION__ << ':' << __LINE__ << "  tap_size:" << taps.size() << std::endl;
     if (d_aligned_taps != NULL) {
+    std::cout << __FUNCTION__ << ':' << __LINE__ << "  free taps:" << d_naligned << std::endl;
         for (int i = 0; i < d_naligned; i++) {
             volk_free(d_aligned_taps[i]);
         }
@@ -71,10 +73,15 @@ void fir_filter<IN_T, OUT_T, TAP_T>::set_taps(const std::vector<TAP_T>& taps)
     std::reverse(d_taps.begin(), d_taps.end());
 
     // Make a set of taps at all possible arch alignments
+    std::cout << __FUNCTION__ << ':' << __LINE__ << "  malloc:" << (d_naligned * sizeof(TAP_T*)) << std::endl;
     d_aligned_taps = (TAP_T**)malloc(d_naligned * sizeof(TAP_T*));
     for (int i = 0; i < d_naligned; i++) {
+    std::cout << __FUNCTION__ << ':' << __LINE__ << "  volk_malloc:"
+              << (d_ntaps + d_naligned - 1) * sizeof(TAP_T)
+              << "  d_align:" << d_align << std::endl;
         d_aligned_taps[i] =
             (TAP_T*)volk_malloc((d_ntaps + d_naligned - 1) * sizeof(TAP_T), d_align);
+    std::cout << __FUNCTION__ << ':' << __LINE__ << "  fill_n:" << (d_ntaps + d_naligned - 1) << std::endl;
         std::fill_n(d_aligned_taps[i], d_ntaps + d_naligned - 1, 0);
         for (unsigned int j = 0; j < d_ntaps; j++)
             d_aligned_taps[i][i + j] = d_taps[j];
