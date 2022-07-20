@@ -84,17 +84,6 @@ class Application(Gtk.Application):
         Gtk.Application.do_startup(self)
         log.debug("Application.do_startup()")
 
-        # Setup the menu
-        log.debug("Creating menu")
-        '''
-        self.menu = Bars.Menu()
-        self.set_menu()
-        if self.prefers_app_menu():
-            self.set_app_menu(self.menu)
-        else:
-            self.set_menubar(self.menu)
-        '''
-
     def do_activate(self):
         Gtk.Application.do_activate(self)
         log.debug("Application.do_activate()")
@@ -130,7 +119,6 @@ class Application(Gtk.Application):
 
         def flow_graph_update(fg=flow_graph):
             main.vars.update_gui(fg.blocks)
-            fg.namespace.clear()
             fg.update()
 
         ##################################################

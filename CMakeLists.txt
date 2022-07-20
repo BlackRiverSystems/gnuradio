@@ -52,7 +52,7 @@ GR_REGISTER_COMPONENT("testing-support" ENABLE_TESTING)
 # Set the version information here
 SET(VERSION_MAJOR 3)
 SET(VERSION_API   8)
-SET(VERSION_ABI   4)
+SET(VERSION_ABI   5)
 SET(VERSION_PATCH 0)
 include(GrVersion) #setup version info
 
