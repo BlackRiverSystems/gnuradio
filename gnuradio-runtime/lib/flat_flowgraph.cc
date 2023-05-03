@@ -61,8 +61,10 @@ void flat_flowgraph::setup_connections()
                               pmt::write_string(i->src().port()),
                               i->dst().block()->identifier(),
                               pmt::write_string(i->dst().port()));
-        i->src().block()->message_port_sub(
-            i->src().port(), pmt::cons(i->dst().block()->alias_pmt(), i->dst().port()));
+        if (i->src().block()->message_port_sub(
+            i->src().port(), pmt::cons(i->dst().block()->alias_pmt(), i->dst().port()))) {
+            i->dst().block()->message_src_sub();
+        }
     }
 }
 
@@ -344,9 +346,11 @@ void flat_flowgraph::merge_connections(flat_flowgraph_sptr old_ffg)
                 pmt::write_string(i->src().port()),
                 i->dst().block()->identifier(),
                 pmt::write_string(i->dst().port()));
-            i->src().block()->message_port_sub(
+            if (i->src().block()->message_port_sub(
                 i->src().port(),
-                pmt::cons(i->dst().block()->alias_pmt(), i->dst().port()));
+                pmt::cons(i->dst().block()->alias_pmt(), i->dst().port()))) {
+                i->src().block()->message_src_sub();
+            }
         }
 
         // Now deal with the fact that the block details might have

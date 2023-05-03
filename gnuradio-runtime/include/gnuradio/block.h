@@ -800,7 +800,7 @@ private:
     int d_priority;               // thread priority level
     bool d_pc_rpc_set;
     bool d_update_rate; // should sched update rel rate?
-    bool d_finished;    // true if msg ports think we are finished
+    int d_finished;     // number of message sources that reported as finished
 
 protected:
     block(void) {} // allows pure virtual interface sub-classes
@@ -1004,7 +1004,7 @@ public:
 
     /*! \brief Make sure we don't think we are finished
      */
-    void clear_finished() { d_finished = false; }
+    void clear_finished() { d_finished = 0; }
 
     std::string identifier() const;
 };

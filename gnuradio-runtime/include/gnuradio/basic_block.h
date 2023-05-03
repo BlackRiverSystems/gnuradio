@@ -158,6 +158,8 @@ protected:
         return std::static_pointer_cast<Derived>(shared_from_this());
     }
 
+    int d_message_sources;
+
 public:
     pmt::pmt_t message_subscribers(pmt::pmt_t port);
     ~basic_block() override;
@@ -208,8 +210,11 @@ public:
     void message_port_register_in(pmt::pmt_t port_id);
     void message_port_register_out(pmt::pmt_t port_id);
     void message_port_pub(pmt::pmt_t port_id, pmt::pmt_t msg);
-    void message_port_sub(pmt::pmt_t port_id, pmt::pmt_t target);
+    bool message_port_sub(pmt::pmt_t port_id, pmt::pmt_t target);
     void message_port_unsub(pmt::pmt_t port_id, pmt::pmt_t target);
+
+    void message_src_sub();
+    void message_src_unsub();
 
     virtual bool message_port_is_hier(pmt::pmt_t port_id)
     {

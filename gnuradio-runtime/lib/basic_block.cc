@@ -39,7 +39,8 @@ basic_block::basic_block(const std::string& name,
       d_rpc_set(false),
       d_logger(std::make_shared<gr::logger>(name)),
       d_debug_logger(std::make_shared<logger_ptr::element_type>(name + " (debug)")),
-      d_message_subscribers(pmt::make_dict())
+      d_message_subscribers(pmt::make_dict()),
+      d_message_sources(0)
 {
     d_logger->set_level(logging::singleton().default_level());
     d_debug_logger->set_level(logging::singleton().debug_level());
@@ -138,7 +139,7 @@ void basic_block::message_port_pub(pmt::pmt_t port_id, pmt::pmt_t msg)
 }
 
 //  - subscribe to a message port
-void basic_block::message_port_sub(pmt::pmt_t port_id, pmt::pmt_t target)
+bool basic_block::message_port_sub(pmt::pmt_t port_id, pmt::pmt_t target)
 {
     if (!pmt::dict_has_key(d_message_subscribers, port_id)) {
         std::stringstream ss;
@@ -149,9 +150,13 @@ void basic_block::message_port_sub(pmt::pmt_t port_id, pmt::pmt_t target)
     pmt::pmt_t currlist = pmt::dict_ref(d_message_subscribers, port_id, pmt::PMT_NIL);
 
     // ignore re-adds of the same target
-    if (!pmt::list_has(currlist, target))
+    if (!pmt::list_has(currlist, target)) {
         d_message_subscribers = pmt::dict_add(
             d_message_subscribers, port_id, pmt::list_add(currlist, target));
+        return true;
+    }
+
+    return false;
 }
 
 void basic_block::message_port_unsub(pmt::pmt_t port_id, pmt::pmt_t target)
@@ -167,6 +172,16 @@ void basic_block::message_port_unsub(pmt::pmt_t port_id, pmt::pmt_t target)
     pmt::pmt_t currlist = pmt::dict_ref(d_message_subscribers, port_id, pmt::PMT_NIL);
     d_message_subscribers =
         pmt::dict_add(d_message_subscribers, port_id, pmt::list_rm(currlist, target));
+}
+
+void basic_block::message_src_sub()
+{
+    d_message_sources++;
+}
+
+void basic_block::message_src_unsub()
+{
+    d_message_sources--;
 }
 
 void basic_block::_post(pmt::pmt_t which_port, pmt::pmt_t msg)

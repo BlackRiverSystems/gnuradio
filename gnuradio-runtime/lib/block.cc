@@ -760,7 +760,12 @@ void block::system_handler(pmt::pmt_t msg)
     // d_logger->info("system handler {:s}", msg);
     pmt::pmt_t op = pmt::car(msg);
     if (pmt::eqv(op, d_pmt_done)) {
-        d_finished = pmt::to_long(pmt::cdr(msg));
+        if (pmt::to_long(pmt::cdr(msg)))
+        {
+            d_finished++;
+            if (d_finished > d_message_sources)
+                throw std::runtime_error("d_finished > d_message_sources");
+        }
         global_block_registry.notify_blk(d_symbol_name);
     } else {
         d_logger->warn("bad message op on system port!");
@@ -807,7 +812,7 @@ bool block::finished()
     if (detail()->ninputs() != 0)
         return false;
     else
-        return d_finished;
+        return (d_finished == d_message_sources);
 }
 
 

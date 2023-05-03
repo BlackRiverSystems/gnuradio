@@ -245,6 +245,8 @@ void hier_block2_detail::msg_disconnect(basic_block_sptr src,
 
     // unregister the subscription - if already subscribed
     src->message_port_unsub(srcport, pmt::cons(dst->alias_pmt(), dstport));
+
+    dst->message_src_unsub();
 }
 
 void hier_block2_detail::disconnect(basic_block_sptr block)
