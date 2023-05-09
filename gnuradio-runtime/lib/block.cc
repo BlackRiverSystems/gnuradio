@@ -812,7 +812,7 @@ bool block::finished()
     if (detail()->ninputs() != 0)
         return false;
     else
-        return (d_finished == d_message_sources);
+        return (d_message_sources && (d_finished == d_message_sources));
 }
 
 
