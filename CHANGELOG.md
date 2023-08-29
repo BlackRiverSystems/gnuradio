@@ -7,6 +7,139 @@ Versioning](http://semver.org/spec/v2.0.0.html), starting with version 3.7.12.0.
 
 Older Logs can be found in `docs/RELEASE-NOTES-*`.
 
+## [3.10.7.0] - 2023-07-15
+
+### Changed
+
+#### Runtime
+- Setting the minimum buffer size should have the desired effect now, and
+not be overwritten. NOTE: the value returned by min_buffer_size() is not
+intended to indicate the actual buffer size. Header Payload Demod was the
+only block attempting to use this value, and was corrected.
+- Use a set to store thread group (more efficient)
+- Message Debug can now output via the logging system
+- The field prefs.singleton is no longer externally exposed (was unintentional)
+- PMT dict can be generated more easily using pmt::dict_from_mapping()
+
+#### GRC
+- Save changes under all exit conditions (a couple were previously missed)
+- Prevent silent Generate/Run failures for unsaved flowgraphs
+
+#### Testing
+- Add Fedora 38, using the clang compiler
+- Remove EOL Fedora 36
+
+#### gr-analog
+- C++ code generation for Quadrature Demod
+- Add max_gain parameter for AGC
+
+#### gr-blocks
+- Probe Rate adds a name parameter, for clearer logging
+- Selector has a new "sync" more that consumes the same number of items from all
+inputs. Default is now to consume as many items as possible from the active input,
+and no more than that many items from other inputs. The previous behavior was, well,
+broken.
+- Throttle reset item count on restart, to avoid long delays
+
+#### gr-digital
+- Constellation Encoder and Decoder: constellation can be changed at runtime
+
+#### gr-filter
+- Filter design tool: multiple improvements in bounds checking and exception handling
+- Filter design tool: update QMessageBox to work in Qt5
+
+#### gr-network
+- Multiple memory management errors fixed in UDP Source/Sink and TCP Sink
+
+
+#### gr-soapy
+- Better AGC and gain behavior in RTL, AirspyHF and SDRPlay blocks
+- Support bias controls in RTL and SDRPlay blocks
+
+#### gr-uhd
+- Remove possibility of infinite recursion for network overruns
+- Support fmtlib v10
+- RFNoC: bindings and block yml for Vector IIR, Replay and Log Power blocks
+- RFNoC: add S16 format to RX Streamer
+
+#### gr-vocoder
+- Support additional codec2 modes
+
+#### Modtool
+- Don't override user-defined CMAKE_INSTALL_PREFIX
+
+## [3.10.6.0] - 2023-03-31
+
+### Changed
+
+#### Runtime
+- Add Python loggers to top_block and hier_block2
+- Change the default log level (in the config file) to INFO instead of DEBUG
+- Logging improvements in the scheduler
+- Correctly determine native page size for Windows
+
+#### GRC
+- Fixed: opening the source of a hierachical block using the toolbar button produced an error
+- Use the logger, instead of print statements, in generated top blocks
+- Remove libX11 load from generated Python code - this was unncessary and produced warnings
+- Choose Editor dialog stays above parent
+
+#### gr-analog
+- Signal Source: option to hide the message port
+
+#### gr-blocks
+- Throttle: supports max time or number of samples per work iteration, useful for reducing latency at low sample rates
+- Delay block: option to hide the message port
+- File Meta Sink: fix missing Python import in template code
+
+#### gr-channels
+- Default taps should be 1.0, not 1.0 + j1.0
+
+#### gr-digital
+- Async Decoder: several changes to improve performance robustness (see the commit log for more details)
+
+#### gr-fec
+- Tagged Decoder: correctly calculate the frame size for terminated CC decoder
+
+#### gr-filter
+- Fixed reverse parameters in fir_filter_with_buffer and pfb_arb_resampler, which could cause crashes
+- Fixed PFB Arbitrary Resampler was ignoring attenuation parameter
+
+#### gr-iio
+- Set gain mode as specified (was always manual)
+- Use the specified gain parameter for second channel (was same as first channel)
+
+#### gr-qtgui
+- Histogram Sink: calculate range of bins correctly to avoid strange distributions
+- Save (to image) dialogs add file extensions and have a Save button (i.e., they work now)
+
+#### gr-soapy
+- Sources: add tags when the frequency changes
+
+#### gr-uhd
+- Support for more RFNoC blocks
+  - Fosphor, which produces data to drive an on-screen, OpenGL-based renderer which is expected to be in the next release
+  - Moving Average
+  - Switchboard
+  - Split Stream
+- FFT: add properties for direction, magnitude and scaling
+- RX Stream: flush after timeout
+- Fully support multi-channel TX/RX (params were available for one one channel)
+
+#### gr-vocoder
+- Add a number of new codec modes for Codec2 and FreeDV
+
+#### gr-zmq
+- Selectable bind/connect to support more flexible ZMQ patterns and NAT'd networks
+- Stream sources produce when available, instead of waiting for a buffer to fill, helping with latency
+
+#### Modtool
+- Use interp and decim keywords correctly when generating blocks
+
+#### Build system and packaging
+- Uninstall removes icons and desktop files
+
+
 ## [3.10.5.1] - 2023-01-25
 
 Some important blocks turned out to be broken in 3.10.5.0. This unscheduled release fixes those regressions and includes a small number of other cleanups and fixes. v3.10.5.1 is intended to be ABI compatible with v3.10.5.0. We'd still recommend rebuilding dependent packages, if possible.
@@ -320,7 +453,7 @@ The following people contributed commits to this release. They are credited by t
 - Message Edit Box sends message only when return is pressed, rather than whenever focus is lost.
 - Vector Sink allows legend to be disabled.
 - Type error fixes (Python 3.10 is stricter about int casting).
- 
+
 #### gr-trellis
 
 - Provide Python bindings for PCCC Encoder and Viterbi Combo.
@@ -402,7 +535,7 @@ It is with much excitement that we release the next step forward for GNU Radio -
 
 Not only does this release bring in some extremely useful new modules (gr-iio, gr-pdu, and arguably gr-soapy thought that thankfully made it also into recent 3.9 maintenance releases), but also sets a path forward for using GNU Radio in heterogeneous compute environments by providing "custom buffers" for more efficiently interacting with accelerators (GPUS, FPGAs, TPUs, etc.).
 
-We have been fortunate this year to have extremely active backporting and consistent maintenance releases from co-maintainter Jeff Long - so many of the fixes and smaller feature (and larger ones) have already seen the light of day in the 3.9.x.x and even 3.8.x.x releases.  
+We have been fortunate this year to have extremely active backporting and consistent maintenance releases from co-maintainter Jeff Long - so many of the fixes and smaller feature (and larger ones) have already seen the light of day in the 3.9.x.x and even 3.8.x.x releases.
 
 A special specific thanks to the contributors that made these larger features and upstreamed modules possible, but much appreciation to all that contributed through code, documentation, review, and just generally being a part of this wonderful community.
 - gr-pdu: Jacob Gilbert and the team at Sandia National Labs
@@ -480,8 +613,8 @@ A special specific thanks to the contributors that made these larger features an
 - Remove deprecated simple_{correlator,framer}
 - Remove deprecated cma, lms, kurtotic equalizers; replaced in 3.9 by `linear_equalizer`
 - Un-deprecate pfb_clock_sync
-- Add header payload demux example 
-- Remove crc32 utility and most of packet_utils 
+- Add header payload demux example
+- Remove crc32 utility and most of packet_utils
 - Remove yml files for non-existent QAM mod/demod blocks
 
 #### gr-dtv
@@ -512,7 +645,7 @@ A special specific thanks to the contributors that made these larger features an
 #### gr-video-sdl
 
 - Clean up the SDL sinks:
-   -  Remove unused format parameter 
+   -  Remove unused format parameter
 
 #### gnuradio-runtime
 
@@ -540,7 +673,7 @@ A special specific thanks to the contributors that made these larger features an
 
 - dtools: Added run-clang-tidy-on-codebase, which does what the name suggests,
   then updates all bindtool hashes, and commits everything appropriately
-- `gr_filter_design` 
+- `gr_filter_design`
   - update to support PyQt5
   - fix loading of previously saved .csv files
 
@@ -835,7 +968,7 @@ The SoapySDR framework and Soapy driver modules are not maintained by the GNU Ra
 
 #### gr-uhd
 
-- Add policy enum to Python bindings for `tune_request` 
+- Add policy enum to Python bindings for `tune_request`
 - Additional time spec options on UHD blocks (PC Clock on Next PPS, GPS Time on Next PPS)
 - Fix up code that was generating warnings
 - Fix command handler logic to apply commands from messages to the correct channel
@@ -1492,7 +1625,7 @@ This is an API compatible update to GNU Radio 3.8. Code written for 3.8.X versio
 - Change type aliasing to allow interleaved short/byte to be connected to vectors of short/byte. Stricter type checking was added previously and caused some blocks to be unconnectable when using these types.
 - Account for scale factor when computing drawing area size
 - Tooltips fixed for categories and modules
-- 
+-
 #### gr-digital
 - Fix yml file for Header/Payload Demux
 
@@ -1980,7 +2113,7 @@ At LEAST the following authors contributed to this release.
 
 - `sig_source`: `freq` port will be removed in the future
 
-### Added 
+### Added
 #### gr-analog
 
 - `sig_source`: `cmd` port adds support for dicts, setting of frequency,
