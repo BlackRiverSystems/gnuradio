@@ -11,15 +11,15 @@ SPDX-License-Identifier: GPL-2.0-or-later
 import collections
 import itertools
 import copy
-
 import re
-
 import ast
+import typing
 
 from ._templates import MakoTemplates
 from ._flags import Flags
 
 from ..base import Element
+from ..params import Param
 from ..utils.descriptors import lazy_property
 
 
@@ -43,6 +43,7 @@ class Block(Element):
     vtype = ''  # This is only used for variables when we want C++ output
     flags = Flags('')
     documentation = {'': ''}
+    doc_url = ''
 
     value = None
     asserts = []
@@ -61,10 +62,8 @@ class Block(Element):
         param_factory = self.parent_platform.make_param
         port_factory = self.parent_platform.make_port
 
-        self.params = collections.OrderedDict(
-            (data['id'], param_factory(parent=self, **data))
-            for data in self.parameters_data
-        )
+        self.params: typing.OrderedDict[str, Param] = collections.OrderedDict(
+            (data['id'], param_factory(parent=self, **data)) for data in self.parameters_data)
         if self.key == 'options':
             self.params['id'].hide = 'part'
 
@@ -76,7 +75,7 @@ class Block(Element):
         self.active_sources = []  # on rewrite
         self.active_sinks = []  # on rewrite
 
-        self.states = {'state': True, 'bus_source': False,
+        self.states = {'state': 'enabled', 'bus_source': False,
                        'bus_sink': False, 'bus_structure': None}
         self.block_namespace = {}
         self.deprecated = self.is_deprecated()
@@ -442,49 +441,33 @@ class Block(Element):
         self.cpp_templates = copy.copy(self.orig_cpp_templates)
 
         # Determine the lvalue type
-        def get_type(element, _vtype):
+        def get_type(element: str, _vtype: typing.Optional[type] = None) -> str:
             evaluated = None
             try:
                 evaluated = ast.literal_eval(element)
-                if _vtype == None:
+                if _vtype is None:
                     _vtype = type(evaluated)
             except ValueError or SyntaxError as excp:
-                if _vtype == None:
+                if _vtype is None:
                     print(excp)
+            simple_types = {int: "int", float: "double", bool: "bool", complex: "gr_complex", str: "std::string"}
+            if _vtype in simple_types:
+                return simple_types[_vtype]
+            if _vtype == list:
+                try:
+                    # For container types we must also determine the type of the template parameter(s)
+                    return f"std::vector<{get_type(str(evaluated[0]), type(evaluated[0]))}>"
+                except IndexError:  # empty list
+                    return 'std::vector<std::string>'
 
-            if _vtype in [int, float, bool, list, dict, str, complex]:
-                if _vtype == (int or long):
-                    return 'int'
-
-                if _vtype == float:
-                    return 'double'
-
-                if _vtype == bool:
-                    return 'bool'
-
-                if _vtype == complex:
-                    return 'gr_complex'
-
-                if _vtype == list:
-                    try:
-                        # For container types we must also determine the type of the template parameter(s)
-                        return 'std::vector<' + get_type(str(evaluated[0]), type(evaluated[0])) + '>'
-
-                    except IndexError:  # empty list
-                        return 'std::vector<std::string>'
-
-                if _vtype == dict:
-                    try:
-                        # For container types we must also determine the type of the template parameter(s)
-                        key = list(evaluated)[0]
-                        val = list(evaluated.values())[0]
-                        return 'std::map<' + get_type(str(key), type(key)) + ', ' + get_type(str(val), type(val)) + '>'
-
-                    except IndexError:  # empty dict
-                        return 'std::map<std::string, std::string>'
-
-                else:
-                    return 'std::string'
+            if _vtype == dict:
+                try:
+                    # For container types we must also determine the type of the template parameter(s)
+                    key = list(evaluated)[0]
+                    val = list(evaluated.values())[0]
+                    return f"std::map<{get_type(str(key), type(key))}, {get_type(str(val), type(val))}>"
+                except IndexError:  # empty dict
+                    return 'std::map<std::string, std::string>'
 
         # Get the lvalue type
         self.vtype = get_type(value, py_type)
@@ -767,14 +750,16 @@ class Block(Element):
     def bussify(self, direc):
         if direc == 'source':
             ports = self.sources
-            ports_gui = self.filter_bus_port(self.sources)
-            self.bus_structure = self.get_bus_structure('source')
-            self.bus_source = not self.bus_source
+            if ports:
+                ports_gui = self.filter_bus_port(self.sources)
+                self.bus_structure = self.get_bus_structure('source')
+                self.bus_source = not self.bus_source
         else:
             ports = self.sinks
-            ports_gui = self.filter_bus_port(self.sinks)
-            self.bus_structure = self.get_bus_structure('sink')
-            self.bus_sink = not self.bus_sink
+            if ports:
+                ports_gui = self.filter_bus_port(self.sinks)
+                self.bus_structure = self.get_bus_structure('sink')
+                self.bus_sink = not self.bus_sink
 
         # Disconnect all the connections when toggling the bus state
         for port in ports:

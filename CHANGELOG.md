@@ -7,6 +7,144 @@ Versioning](http://semver.org/spec/v2.0.0.html), starting with version 3.7.12.0.
 
 Older Logs can be found in `docs/RELEASE-NOTES-*`.
 
+## [3.10.9.0] - 2023-12-24
+
+### Changed
+
+#### Project
+- Python minimum version is now 3.7.2, vs 3.6.5, to support type hints. Even
+Python 3.7 is EOL, so this is not expected to affect people using newer versions of
+GNU Radio.
+- Add tox.ini, so that editors use the same formatting as github CI.
+- Use pointers to pass s32fc arguments to VOLK in gr-blocks, gr-digital, and
+gr-dtv to avoid undefined behavior. The fix is conditional on VOLK 3.1.0, which
+add a new supporting function.
+
+#### Runtime
+- Disallow None for pmt_t arguments in Python.
+- Support spdlog installations with internal or external libfmt.
+
+#### GRC
+- Use text labels to specify types for block parameters, instead of background colors
+which were difficult to read/remember.
+- Enable setting of documentation URLs, relative or absolute in yaml. This allows
+OOTs to use the documentation link in the block parameter dialog.
+- Disallow use of block ids that are Python keywords and "gnuradio".
+- Add type annotations in some places (required bump to Python 3.7.2).
+- Use C version of YAML loader (yaml.CSafeLoader) for better performance.
+- Connections may have properties for supported connection domains. This feature
+was added for RFNoC connections. Standard stream and message connections do not
+support this feature, but they may in future versions.
+- Check grc file version. The above feature required a version bump to "2". Where
+no connection properties are used, version "1" is still emitted. Note that previous
+versions of GRC do not check for file version. RFNoC flowgraphs with connection
+properties will fail to load in previous versions as a result.
+- Fix bug where an impressive number of backslashes were added to some filenames.
+
+#### gr-dtv
+- Read expected data as little-endian
+
+#### gr-fec
+- Add FEC_API to CCSDS Reed-Solomon functions so they can be used by OOTs.
+
+#### gr-qtgui
+- QT GUI Msg Push Button: add a callback for Message Value to allow it to
+change at runtime.
+
+#### gr-uhd
+- RFNoC Rx-Streamer: Add start stream options
+- Add back-edge property to RFNoC connections
+
+#### Build system and packaging
+- Update conda build. Re-rendered with conda-build 3.27.0, conda-smithy 3.28.0,
+and conda-forge-pinning 2023.11.07.18.09.01.
+- Use utf-8 encoding when writing files in gr_python_install.
+
+#### Testing
+There has been a great effort to identify why tests fail intermittently, or only
+on certain platforms. This has lead to a number of improved test, and identification
+of a number of real bugs.
+
+## [3.10.8.0] - 2023-10-20
+
+### Changed
+
+#### Runtime
+- Add `MAP_FIXED` to circular buffer implementations using `shm_open()` and
+  mmap backed by tmp files. These versions are not used by most system, and
+  flaws were discovered during a FreeBSD build.
+- PMTs can be formatted for logging (format wrapper added).
+- New `io_signature::make()` variant replaces `makev()`, and optionally specifies
+  buffer types. Previous variants are still valid, for backward compatibility. The
+  single-stream `make()`, along with the `makev()`, `make2()` and `make3()` variants
+  should not be used in new code, and may be removed in the future.
+
+```
+    make(int min_streams,
+         int max_streams,
+         const std::vector<size_t>& sizeof_stream_items,
+         const gr::gr_vector_buffer_type& buftypes =
+             gr::gr_vector_buffer_type(1, default_buftype::type));
+```
+
+- Fix logging params to be compatible with C++20
+
+#### GRC
+- Add "Choose Editor" button to Python block properties. Use the GTK app chooser.
+  Save choice to the config file.
+- Correct Python Qt imports in Hier blocks and flowgraph templates.
+
+#### gr-blocks
+- Enable building the benchmark testing executable, which runs tests on various
+  math functions.
+- Repeat block implemented as a basic block (vs sync interpolator) and output
+  buffer allocation fixed.
+- Add a GRC example for Throttle usage.
+
+#### gr-digital
+- Add `set_sps()` to Symbol Sync.
+- Header Format: Fix CRC and OFDM formats, add option to `header_buffer` to read
+  bits lsb first, and refactor `extract_bits` functions as templates.
+- Constellation Sink uses different colors for each input by default.
+- Rework Constellation Soft Decoder, Constellation Object and LDPC Decoder Definition.
+  Previously, the LDPC Decoder did not work at all. The `sigma` parameter was removed
+  from the decoder and an optional noise power `npwr` parameter was added to the
+  constellation.
+
+#### gr-network
+- Better support for vectorized output from UDP source. The payload size must still
+  be a multiple of `item size * vector size` for this to work.
+
+#### gr-qtgui
+- Range widget `eng_slider` and `eng` modes can now be selected in GRC.
+- Range widget and a couple of UHD apps now accept values on `editingFinished`, e.g.,
+  loss of focus, rather than on `returnPressed`. Since UIs generated by GRC do not
+  have OK/Apply for such values, there is no "correct" behavior. The behavior is
+  now selectable on the Entry widget.
+- Frequency Sink startup time improved where sample rate is low
+
+#### gr-soapy
+- RTLSDR buffer size may be specified
+
+#### gr-uhd
+- RFNoC NullSrcSink block added. The block may be both source and sink.
+- Add support and examples for RFNoC loopback.
+- RFNoC Rx Radio adds `issue_stream_cmd()` and block message handler.
+
+#### gr-zeromq
+- Explicitly shutdown and close source/sinks to prevent hangs in some cases.
+- Require `zmq.hpp` (cppzmq) version with `context_t.shutdown()` defined.
+  If `shutdown` is not defined, the `gr-zeromq` is disabled.
+
+#### Modtool
+- Add `cmake-format` support for generated modules
+
+#### Build system and packaging
+- Update Read-the-docs config to include build.tools
+
+#### Testing
+- Change Debian 11 to Debian 12 in CI
+
 ## [3.10.7.0] - 2023-07-15
 
 ### Changed

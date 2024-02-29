@@ -46,8 +46,8 @@ include(GrComponent)
 # cmake-format: off
 SET(VERSION_MAJOR 3)
 SET(VERSION_API   10)
-SET(VERSION_ABI   7)
-SET(VERSION_PATCH 0)
+SET(VERSION_ABI   9)
+SET(VERSION_PATCH 2)
 include(GrVersion) #setup version info
 # cmake-format: on
 
@@ -351,6 +351,7 @@ install(
     FILES .clang-format
     RENAME clang-format.conf
     DESTINATION ${GR_PKG_DATA_DIR})
+install(FILES .cmake-format.py DESTINATION ${GR_PKG_DATA_DIR})
 
 ########################################################################
 # The following dependency libraries are needed by all gr modules:
